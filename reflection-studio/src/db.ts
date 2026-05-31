@@ -2,18 +2,25 @@ import Dexie, { type Table } from 'dexie';
 
 export interface User {
   id?: number;
-  name: string;
+  displayName: string;
+  defaultTemplate: number | null;
+  reminderTime: string | null;
+  theme: 'light' | 'dark' | 'system';
 }
 
 export interface PromptSet {
   id?: number;
-  prompts: string[];
+  templateId: number;
+  prompts: { id: string; order: number; text: string; hint: string; }[];
 }
 
 export interface Template {
   id?: number;
   name: string;
   description: string;
+  category: string;
+  color: string;
+  icon: string;
   promptSetId: number;
 }
 
@@ -21,15 +28,27 @@ export interface JournalEntry {
   id?: number;
   templateId: number;
   date: string;
-  responses: Record<number, string>; // prompt index to response
+  title?: string;
+  responses: { promptId: string; promptText: string; response: string; }[];
   tags: string[];
   mood: string;
+  wordCount: number;
+  status: 'draft' | 'complete';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TagMood {
   id?: number;
   type: 'tag' | 'mood';
-  value: string;
+  name: string;
+  color: string;
+  emoji: string;
+}
+
+export interface AppState {
+  id: string; // usually 'seeded'
+  value: boolean;
 }
 
 export class ReflectionDatabase extends Dexie {
@@ -38,15 +57,17 @@ export class ReflectionDatabase extends Dexie {
   promptSets!: Table<PromptSet>;
   journalEntries!: Table<JournalEntry>;
   tagsMoods!: Table<TagMood>;
+  appState!: Table<AppState>;
 
   constructor() {
     super('ReflectionDatabase');
-    this.version(1).stores({
-      users: '++id, name',
-      templates: '++id, name, promptSetId',
-      promptSets: '++id',
-      journalEntries: '++id, templateId, date, mood, *tags',
-      tagsMoods: '++id, type, value'
+    this.version(2).stores({
+      users: '++id',
+      templates: '++id, category',
+      promptSets: '++id, templateId',
+      journalEntries: '++id, templateId, date, mood, status, *tags',
+      tagsMoods: '++id, type, name',
+      appState: 'id'
     });
   }
 }

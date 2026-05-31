@@ -9,7 +9,7 @@ export const Dashboard: React.FC = () => {
   const [filterMood, setFilterMood] = useState<string>('');
 
   const entries = useLiveQuery(async () => {
-    let collection = db.journalEntries.orderBy('date').reverse();
+    const collection = db.journalEntries.orderBy('date').reverse();
     const array = await collection.toArray();
 
     return array.filter(entry => {
@@ -96,7 +96,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
-                {Object.values(entry.responses)[0] || 'No content...'}
+                {entry.responses[0]?.response || 'No content...'}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {entry.mood && (
